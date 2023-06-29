@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# This script installs nginx on the computer it's run on.
+#  It prints 'Hello world' when curled
+sudo apt-get update
+sudo apt-get -y install nginx
+sudo ufw allow 'Nginx HTTP'
+sudo chown -R $USER:$USER /var/www/html
+sudo echo 'Hello World!' > /var/www/html/index.html
+sudo sed -i "52a \\trewrite /redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent" /etc/nginx/sites-available/default
+sudo service nginx start
