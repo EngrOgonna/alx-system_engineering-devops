@@ -1,23 +1,37 @@
+#!/usr/bin/python3
+"""
+Recursive function that queries the Reddit API and returns
+a list containing the titles of all hot articles for a given subreddit.
+If no results are found for the given subreddit,
+the function should return None.
+"""
+
 import requests
 
-def count_keywords(subreddit, keywords):
-    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
-    data = response.json()
 
-    titles = [post["data"]["title"] for post in data["data"]["children"]]
-    keyword_count = {keyword: 0 for keyword in keywords}
+def recurse(subreddit, hot_list=[], after=""):
+    """
+    Queries the Reddit API and returns
+    a list containing the titles of all hot articles for a given subreddit.
 
-    for title in titles:
-        words = title.lower().split()
-        for keyword in keywords:
-            if keyword.lower() in words:
-                keyword_count[keyword] += 1
+    - If not a valid subreddit, return None.
+    """
+    req = requests.get(
+        "https://www.reddit.com/r/{}/hot.json".format(subreddit),
+        headers={"User-Agent": "Custom"},
+        params={"after": after},
+    )
 
-    for keyword, count in sorted(keyword_count.items(), key=lambda x: x[1], reverse=True):
-        print(f"{keyword}: {count}")
+    if req.status_code == 200:
+        for get_data in req.json().get("data").get("children"):
+            dat = get_data.get("data")
+            title = dat.get("title")
+            hot_list.append(title)
+        after = req.json().get("data").get("after")
 
-    after = data["data"]["after"]
-    if after is not None:
-        count_keywords(subreddit, keywords)
+        if after is None:
+            return hot_list
+        else:
+            return recurse(subreddit, hot_list, after)
+    else:
+        return None
